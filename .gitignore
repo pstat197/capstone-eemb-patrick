@@ -1,0 +1,7 @@
+# ignore all log files 
+*.log
+
+# ignore all txt files
+*.txt
+
+# add any type of files you want to ignore below
