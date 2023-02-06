@@ -16,10 +16,12 @@ Automate the behavioral analysis of fights themselves, e.g., finding automated m
 ### Prerequisites
 
 * Python - Version 3.10.0 or higher.
-* Other packages - Please add
+* Conda - With Jupyter Notebook installed.
+* OpenCV - Version 4.7.0. [Download and Install OpenCV](https://pypi.org/project/opencv-python/), or use the following code in your Conda command prompt.
 ```bash
-$ code for package installaiton etc.
+$ pip install opencv-python
 ```
+* Other packages - Numpy, Pandas, Scipy, Sys 
 
 ### Repository contents
 
