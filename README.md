@@ -21,6 +21,7 @@ Automate the behavioral analysis of fights themselves, e.g., finding automated m
 ```bash
 $ pip install opencv-python
 ```
+* Tracktor - Tracktor is an OpenCV based object tracking software. [See the instructions.](https://github.com/vivekhsridhar/tracktor). 
 * Other packages - Numpy, Pandas, Scipy, Sys 
 
 ### Repository contents
@@ -32,7 +33,7 @@ $ pip install opencv-python
    
 * `scripts` contains
 
-   - Video data preprocessing scripts.
+   - `tracktor.py` tracktor code.
    - Video object tracking scripts.
    - etc.
    
