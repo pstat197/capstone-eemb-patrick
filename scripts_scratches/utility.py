@@ -9,8 +9,6 @@ def BurrowDetection(background):
 
     # Apply the Hough transform to detect circles in the image
     circles = cv.HoughCircles(gray, cv.HOUGH_GRADIENT, 1, 20, param1=50, param2=30, minRadius=0, maxRadius=0)
-
-    # If circles were found, draw a circle around each one and assign a unique ID
     if circles is not None:
         circles = np.round(circles[0, :]).astype("int")
         return circles
@@ -26,8 +24,6 @@ def BurrowInteractiveAreaGraph(image, circles):
         cv.putText(image, "C"+i, (x - r, y - r), cv.FONT_HERSHEY_SIMPLEX, 0.5, (255, 0, 0), 2)
 
     return image
-
-
 
 
 
