@@ -3,28 +3,15 @@ import numpy as np
 
 # Burrow Detection
 def BurrowDetection(background):
-
-    gray = cv.cvtColor(background, cv.COLOR_BGR2GRAY)
-    gray = cv.GaussianBlur(gray, (105, 105), 0)
+    '''This function takes a gray scaled image and return a list of circles detected in the image'''
 
     # Apply the Hough transform to detect circles in the image
-    circles = cv.HoughCircles(gray, cv.HOUGH_GRADIENT, 1, 20, param1=50, param2=30, minRadius=0, maxRadius=0)
+    circles = cv.HoughCircles(background, cv.HOUGH_GRADIENT, 1, 20, param1=60, param2=40, minRadius=0, maxRadius=0)
     if circles is not None:
         circles = np.round(circles[0, :]).astype("int")
         return circles
     else:
         print("No circle is detected.")
-
-def BurrowInteractiveAreaGraph(image, circles):
-        
-    for i, (x, y, r) in enumerate(circles):
-
-        cv.circle(image, (x, y), 1.5*r, (10*i, 0, 0), 2)
-        cv.circle(image, (x, y), r, (0, 10*i, 0), 2)
-        cv.putText(image, "C"+i, (x - r, y - r), cv.FONT_HERSHEY_SIMPLEX, 0.5, (255, 0, 0), 2)
-
-    return image
-
 
 
 
