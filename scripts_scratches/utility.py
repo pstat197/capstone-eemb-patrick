@@ -36,24 +36,34 @@ def BackgroundSubtraction(video, back):
 
     # Convert background to required format
     background = cv.resize(background, size)
+    #grayBackground = cv.GaussianBlur(background, (55,55),0)
     grayBackground = cv.cvtColor(background, cv.COLOR_RGB2GRAY)
-    grayBackgroundBlur = cv.GaussianBlur(grayBackground, (105,105),0)
-
-    #processed = []
+    
+    processed = []
     out = cv.VideoWriter("BlackWhiteResult.avi", cv.VideoWriter_fourcc(*'MJPG'), 29, size)
 
     while ret:
 
         # Convert frame to required format
+        #grayFrame = cv.GaussianBlur(frame, (55,55),0)
         grayFrame = cv.cvtColor(frame, cv.COLOR_RGB2GRAY)
-        grayFrameBlur = cv.GaussianBlur(grayFrame, (105,105),0)
 
         # Subtract the background
-        delta = cv.absdiff(grayBackgroundBlur, grayFrameBlur)
-        threshold = cv.threshold(delta, 135, 255, cv.THRESH_BINARY_INV+cv.THRESH_OTSU)[1]
+        delta = cv.absdiff(grayBackground, grayFrame)
 
-        # Record the processed image
-        #processed.append(threshold)
+        kernel = cv.getStructuringElement(cv.MORPH_ELLIPSE, (10, 10))
+        opened = cv.morphologyEx(delta, cv.MORPH_OPEN, kernel)
+
+        blur = cv.GaussianBlur(opened, (23, 23), 0)
+
+        kernel = cv.getStructuringElement(cv.MORPH_ELLIPSE, (60, 60))
+        closed = cv.morphologyEx(blur, cv.MORPH_CLOSE, kernel)
+        
+        threshold = cv.threshold(closed, 135, 255, cv.THRESH_BINARY_INV+cv.THRESH_OTSU)[1]
+
+        #Record the processed image
+        processed.append(threshold)
+
         RGBMode = cv.cvtColor(threshold, cv.COLOR_GRAY2RGB)
         out.write(RGBMode)
 
@@ -61,3 +71,5 @@ def BackgroundSubtraction(video, back):
 
     capture.release()
     out.release()
+
+    return processed
