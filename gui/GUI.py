@@ -5,8 +5,6 @@
 
 
 import GTools as gt
-from GTools import InfoProcessor
-import BGTools as bgt
 import numpy as np
 import pandas as pd
 import seaborn as sns
@@ -60,7 +58,7 @@ tab1.columnconfigure([0, 1, 2], minsize=50, weight=1)
 ###############################
 
 def getBackground(video, n):
-    video = cv.VideoCapture(Video)
+    video = cv.VideoCapture(video)
     # count the total frames in the video 
     count = int(video.get(cv.CAP_PROP_FRAME_COUNT))
     # calculate the modulo
