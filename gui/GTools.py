@@ -1,7 +1,5 @@
 import cv2 as cv
 import numpy as np
-import tkinter
-from tkinter import simpledialog
 
 # Burrow Detection
 def CircleDetection(image):
@@ -127,7 +125,7 @@ def InfoProcessor(background):
     CropData = RegionSelection(background)
     image = np.copy(background[CropData[0]:CropData[1], CropData[2]:CropData[3]])
 
-    number = simpledialog.askinteger("Burrow Count","How many burrows are in the arena? (Enter an integer):")
+    number = int(input("How many burrows are in the arena? (Enter an integer):"))
     Circles = BurrowDetection(image, number)
     centers = []
     radius = []
@@ -145,7 +143,7 @@ def InfoProcessor(background):
 
         if key == ord('y'):
             cv.destroyAllWindows()
-            x = simpledialog.askinteger("Burrow Selection","Which burrow has a resident? (Enter an integer):")
+            x = int(input("Which burrow has a resident? (Enter an integer):"))
             return CropData, centers, radius, centers[x]
         elif key == ord('n'):
             return InfoProcessor(background)
@@ -243,11 +241,11 @@ def BGExtraction(Video, frame, option=1):
 
     return bg
 
-def SingleImageProcessor(frame):
+def SingleImageProcessor(frame, threshold):
     
     kernel = cv.getStructuringElement(cv.MORPH_ELLIPSE, (10, 10)) 
     opened = cv.morphologyEx(frame, cv.MORPH_OPEN, kernel, iterations = 2)
     blur = cv.GaussianBlur(opened, (55, 55), 0) 
-    threshold = cv.threshold(blur, 25, 255, cv.THRESH_BINARY_INV)[1]
+    threshold = cv.threshold(blur, threshold, 255, cv.THRESH_BINARY_INV)[1]
 
     return threshold
