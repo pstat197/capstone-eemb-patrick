@@ -1,5 +1,7 @@
 import cv2 as cv
 import numpy as np
+import tkinter
+from tkinter import simpledialog
 
 # Burrow Detection
 def CircleDetection(image):
@@ -125,7 +127,7 @@ def InfoProcessor(background):
     CropData = RegionSelection(background)
     image = np.copy(background[CropData[0]:CropData[1], CropData[2]:CropData[3]])
 
-    number = int(input("How many burrows are in the arena? (Enter an integer):"))
+    number = simpledialog.askinteger("Burrow Count","How many burrows are in the arena? (Enter an integer):")
     Circles = BurrowDetection(image, number)
     centers = []
     radius = []
@@ -143,7 +145,7 @@ def InfoProcessor(background):
 
         if key == ord('y'):
             cv.destroyAllWindows()
-            x = int(input("Which burrow has a resident? (Enter an integer):"))
+            x = simpledialog.askinteger("Resident Location","Which burrow has a resident? (Enter an integer):")
             return CropData, centers, radius, centers[x]
         elif key == ord('n'):
             return InfoProcessor(background)

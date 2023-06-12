@@ -59,7 +59,7 @@ tab1.columnconfigure([0, 1, 2], minsize=50, weight=1)
 
 def getBackground(video, n):
     video = cv.VideoCapture(video)
-    # count the total frames in the video 
+    # count the total frames in the video
     count = int(video.get(cv.CAP_PROP_FRAME_COUNT))
     # calculate the modulo
     modulo = count % n
@@ -96,7 +96,7 @@ def getBackground(video, n):
 
 ##########################################################       
 
-def MasterTracking(video_path, background_path = 0):
+def MasterTracking(video_path, background_path = 0, threshold = 25):
 
     # Read in background images
     if background_path == 0:
@@ -130,7 +130,7 @@ def MasterTracking(video_path, background_path = 0):
         delta = delta[shape[0]:shape[1], shape[2]:shape[3]]
 
         # Starts tracking
-        thresh = gt.SingleImageProcessor(delta)
+        thresh = gt.SingleImageProcessor(delta, threshold)
         final, contours, meas_last, meas_now = tr.detect_and_draw_contours(frame, thresh, meas_last, meas_now, 100, 10000)
 
         # Clear duplicated contours
@@ -184,6 +184,7 @@ def MasterTracking(video_path, background_path = 0):
     df = pd.DataFrame(np.matrix(df), columns = ['frame','pos_x','pos_y', 'id'])
     return df
 
+
 ##########################################################
 
 def select_video():
@@ -197,14 +198,19 @@ def select_background():
     background_entry.delete(0, tk.END)
     background_entry.insert(0, file_path)
         
-
+def select_output_path():
+    file_path = filedialog.asksaveasfilename(defaultextension=".csv", filetypes=[("CSV Files", "*.csv")])
+    output_entry.delete(0, tk.END)
+    output_entry.insert(0, file_path)
     
 def run_tracking():
     video_path = video_entry.get()
     background_path = background_entry.get()
+    output_path = output_entry.get()  # Get the output file path
     df = MasterTracking(video_path, background_path)
     
-    df.to_csv("output.csv", index = False)
+    df.to_csv(output_path, index=False)  # Save the output file in the specified path
+
 ###########################################################
 
 # Create a label and entry field for video input
@@ -213,21 +219,27 @@ video_label.pack()
 video_entry = ttk.Entry(tab2)
 video_entry.pack()
 
-# Create a button to select the video file
 video_button = ttk.Button(tab2, text="Select Video", command=select_video)
 video_button.pack()
 
-# Create a label and entry field for background input
 background_label = ttk.Label(tab2, text="Background:")
 background_label.pack()
 background_entry = ttk.Entry(tab2)
 background_entry.pack()
 
-# Create a button to select the background file
+
 background_button = ttk.Button(tab2, text="Select Background", command=select_background)
 background_button.pack()
 
-# Create a button to run the tracking function
+output_label = ttk.Label(tab2, text="Output File Path:")
+output_label.pack()
+output_entry = ttk.Entry(tab2)
+output_entry.pack()
+
+output_button = ttk.Button(tab2, text="Select Output Path", command=select_output_path)
+output_button.pack()
+
+
 run_button = ttk.Button(tab2, text="Run Tracking", command=run_tracking)
 run_button.pack()
 
@@ -338,13 +350,13 @@ def everything():
         pair = pair_df["Pair"].iloc[0]
 
         # Case 2: The two shrimp are never within the distance threshold
-        if pair_df.loc[(pair_df["Distance"] <= cutoff) & (pair_df["Distance"] > 5)].empty == True:
+        if pair_df.loc[(pair_df["Distance"] <= cutoff) & (pair_df["Distance"] >= 5)].empty == True:
             enter.append(0)
             exit.append(0)
             label = [pair]
 
         # Case 2: The two shrimp are always within the distance threshold    
-        elif (len(pair_df.loc[(pair_df["Distance"] <= cutoff) & (pair_df["Distance"] > 5)]) == len(pair_df)) == True:
+        elif (len(pair_df.loc[(pair_df["Distance"] <= cutoff) & (pair_df["Distance"] >= 5)]) == len(pair_df)) == True:
             enter.append((pair_df["Timestamp"].iloc[0]))
             exit.append((pair_df["Timestamp"].iloc[-1]))
             label = [pair]
@@ -354,12 +366,18 @@ def everything():
             if ((pair_df["Distance"].iloc[0]) <= cutoff) == True:
                 enter.append((pair_df["Timestamp"].iloc[0]))
             for index, row in pair_df.iterrows():
-                if ((row["Distance"] > 5) & (row["Distance"] <= cutoff) & (row["Previous"] > cutoff)) == True:
-                    start = row["Timestamp"]
-                    enter.append(start)
-                elif ((row["Distance"] > cutoff) & (row["Previous"] <= cutoff)) == True:
-                    end = row["Timestamp"]
-                    exit.append(end)
+                if ((row["Distance"] <= cutoff) & (row["Distance"] >= 9)):
+                    if ((row["Previous"] > cutoff) | (row["Previous"] < 9)):
+                        start = row["Timestamp"]
+                        enter.append(start)
+                    else:
+                        continue
+                elif ((row["Distance"] > cutoff) | (row["Distance"] < 9)):
+                    if ((row["Previous"] <= cutoff) & (row["Previous"] >= 9)):
+                        end = row["Timestamp"]
+                        exit.append(end)
+                    else:
+                        continue
             if ((pair_df["Distance"].iloc[-1]) <= cutoff) == True:
                 exit.append((pair_df["Timestamp"].iloc[-1]))
             label = [pair] * (len(enter))
@@ -369,7 +387,7 @@ def everything():
         important_times["Start"] = enter
         important_times["End"] = exit
         df_storage_ts.append(important_times)
-    
+   
     combined_df_ts = pd.concat(df_storage_ts, axis = 0, ignore_index = True)
     
     kv_output = path + "/" + str(name) + "_keyvalues.csv"
