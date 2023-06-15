@@ -12,23 +12,23 @@ import plotly.express as px
 import cv2 as cv
 import sys
 import matplotlib.pyplot as plt
+import requests
+from io import BytesIO
 from sklearn.cluster import KMeans
 from scipy.optimize import linear_sum_assignment
 from scipy.spatial.distance import cdist
+from scipy.spatial import distance
 from itertools import combinations
 pd.options.mode.chained_assignment = None
 import tkinter as tk
 from tkinter import *
-from tkinter import ttk, filedialog
+from tkinter import ttk, filedialog, simpledialog
 from tkinter.filedialog import askopenfile
 from PIL import ImageTk, Image
-import cv2 as cv
 import tracktor as tr
 import os
 import multiprocessing as mp
-from scipy.spatial import distance
-from itertools import combinations
-from tkinter import simpledialog
+
 
 
 
@@ -42,10 +42,16 @@ tab1 = ttk.Frame(tabControl)
 tab2 = ttk.Frame(tabControl)
 tab3 = ttk.Frame(tabControl)
 
-img = Image.open("/Users/ashleyson/Desktop/gui/mantis-shrimp-green.png")
+image_url = "https://github.com/pstat197/capstone-eemb-patrick/raw/main/gui/mantis-shrimp-green.png"
+response = requests.get(image_url)
+image_data = response.content
+
+img = Image.open(BytesIO(image_data))
 my_img = img.resize((500, 380))
 orig_img = ImageTk.PhotoImage(my_img)
+
 ttk.Label(tab1, image=orig_img).grid(column=0, row=0, sticky="n")
+
 
 tabControl.add(tab1, text="Home")
 tabControl.add(tab2, text ="Tracking")
@@ -96,13 +102,19 @@ def getBackground(video, n):
 
 ##########################################################       
 
-def MasterTracking(video_path, background_path = 0, threshold = 25):
-
+def MasterTracking(video_path, background_path=None, threshold=25, start_second=0):
     # Read in background images
-    if background_path == 0:
+    if background_path is None:
         background = getBackground(video_path, 100)
     elif isinstance(background_path, str):
         background = cv.imread(background_path)
+    else:
+        raise ValueError("Invalid background_path argument")
+    
+    cap = cv.VideoCapture(video_path)
+    fps = cap.get(cv.CAP_PROP_FPS)
+    start_frame = int(start_second * fps)
+    cap.set(cv.CAP_PROP_POS_FRAMES, start_frame)
 
     # Collect user inputs
     shape, centers, radius, initBurrow = gt.InfoProcessor(background)
@@ -206,10 +218,16 @@ def select_output_path():
 def run_tracking():
     video_path = video_entry.get()
     background_path = background_entry.get()
-    output_path = output_entry.get()  # Get the output file path
-    df = MasterTracking(video_path, background_path)
-    
-    df.to_csv(output_path, index=False)  # Save the output file in the specified path
+    output_path = output_entry.get()
+    if not background_path:
+        background_path = None
+
+    start_second = float(start_entry.get())  # Get the start second input as a float
+
+    df = MasterTracking(video_path, background_path, start_second=start_second)
+    df.to_csv(output_path, index=False)
+
+
 
 ###########################################################
 
@@ -238,6 +256,12 @@ output_entry.pack()
 
 output_button = ttk.Button(tab2, text="Select Output Path", command=select_output_path)
 output_button.pack()
+
+
+start_label = ttk.Label(tab2, text="Start Second:")
+start_label.pack()
+start_entry = ttk.Entry(tab2)
+start_entry.pack()
 
 
 run_button = ttk.Button(tab2, text="Run Tracking", command=run_tracking)
@@ -475,10 +499,15 @@ ttk.Label(tab3, text = "View above").grid(row = 8, column = 0)
     
     
 ##################
-img = Image.open("/Users/ashleyson/Desktop/gui/mantis-shrimp-green.png")
+image_url = "https://github.com/pstat197/capstone-eemb-patrick/raw/main/gui/mantis-shrimp-green.png"
+response = requests.get(image_url)
+image_data = response.content
+
+img = Image.open(BytesIO(image_data))
 my_img = img.resize((500, 380))
 orig_img = ImageTk.PhotoImage(my_img)
-ttk.Label(tab1, image=orig_img).grid(column=0, row=0, sticky="n") 
+
+ttk.Label(tab1, image=orig_img).grid(column=0, row=0, sticky="n")
 
 ttk.Label(tab1, text="Welcome to the EEMB Data Science Capstone GUI!").grid(column=0, row=1)
 
