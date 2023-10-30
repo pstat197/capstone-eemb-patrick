@@ -4,7 +4,7 @@ import tkinter
 from tkinter import simpledialog
 
 # Burrow Detection
-def CircleDetection(image):
+def CircleDetection(image, minD, maxR):
     '''This function takes a gray scaled image and return a list of circles detected in the image
 
     Parameters
@@ -21,7 +21,8 @@ def CircleDetection(image):
     '''
 
     # Apply the Hough transform to detect circles in the image
-    circles = cv.HoughCircles(image, cv.HOUGH_GRADIENT, 1, 20, param1=60, param2=40, minRadius=0, maxRadius=0)
+    circles = cv.HoughCircles(image, cv.HOUGH_GRADIENT, dp = 2, minDist = minD, param1=100, param2=80, minRadius=0, maxRadius=maxR)
+    # param1 and param2 need to justify as well
     if circles is not None:
         circles = np.round(circles[0, :]).astype("int")
         return circles
@@ -45,24 +46,34 @@ def BurrowDetection(image, number):
         list of circles with location in x,y coordinate and a radius
     '''
     gray = cv.cvtColor(image, cv.COLOR_BGR2GRAY)
-
+    
+    
     # Initial Guess of kernel size
-    x = 3
-    y = 3
-    grayBlur = cv.GaussianBlur(gray, (x, y), 0)
-
-    circles = CircleDetection(grayBlur)
+#     x = 3
+#     y = 3
+#     grayBlur = cv.GaussianBlur(gray, (x, y), 0)
+    
+    kernel = np.ones((5, 5), np.uint8) 
+    img_erosion = cv.erode(gray, kernel, iterations=5) 
+    img_dilation = cv.dilate(img_erosion, kernel, iterations=5)
+    ret,thresh = cv.threshold(image,70,255,0)
+    # threshhold parameters need to justify
+    maxR = int(min(gray.shape[0], gray.shape[1])/4)
+    ini_min = 150
+#     circles = CircleDetection(grayBlur)
+    circles = CircleDetection(gray, minD = ini_min, maxR = maxR)
     if circles is None:
         size = 0
     else:
         size = len(circles)
 
     while size > number:
-        x += 2
-        y += 2
-        grayBlur = cv.GaussianBlur(gray, (x, y), 0)
-
-        circles = CircleDetection(grayBlur)
+#         x += 2
+#         y += 2
+#         grayBlur = cv.GaussianBlur(gray, (x, y), 0)
+        ini_min += 50 
+#         circles = CircleDetection(grayBlur)
+        circles = CircleDetection(gray, minD = ini_min, maxR = maxR)
         if circles is None:
             size = 0
         else:
